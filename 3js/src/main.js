@@ -1,15 +1,17 @@
-// 父类测试类
+// 立方体测试类
 import { CubeGeometry } from './cube.js';
 // 三角形测试类
 import { DeltaGeometry } from './delta.js';
 
-// 导入threejs
+// 导入three.js
 import * as THREE from 'three';
 // 导入轨道控制器
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 // 导入lil.gui
 import { GUI } from "three/examples/jsm/libs/lil-gui.module.min.js";
 
+// 限制最大数量20
+let cubes = [];
 const cube = new CubeGeometry();
 const delta = new DeltaGeometry();
 
@@ -31,23 +33,18 @@ document.body.appendChild(renderer.domElement);
 
 // 创建模型
 const parentCube = cube.init({ wireframe: true });
-const childCube = cube.init({ wireframe: false, color: { color: 0x00ff00 } });
 const deltaFace = delta.init();
+
 // 添加到场景
 scene.add(parentCube);
 scene.add(deltaFace);
-parentCube.add(childCube);
+parentCube.position.set(0, 0, 0)
 
-parentCube.position.set(-5, 0, 0)
-// 基于父元素的位置：局部坐标
-childCube.position.set(3, 0, 0)
-// 设置立方体的放大
-childCube.scale.set(2, 2, 2)
 
 // 设置相机位置
-camera.position.z = 5;
-camera.position.y = 2;
-camera.position.x = 2;
+camera.position.z = 20;
+camera.position.y = 10;
+camera.position.x = 10;
 camera.lookAt(0, 0, 0);
 
 // 添加世界坐标辅助器
@@ -62,15 +59,31 @@ controls.enableDamping = true;
 controls.dampingFactor = 0.05;
 
 function render() {
+    // console.log(cubes.length)
     controls.update();
     requestAnimationFrame(render);
     // 旋转
-    childCube.rotation.x += 0.01;
-    childCube.rotation.y += 0.01;
+    // childCube.rotation.x += 0.01;
+    // childCube.rotation.y += 0.01;
     renderer.render(scene, camera);
 }
 
+// 随机数
+function getRandomInteger(min, max) {
+    let num = Math.floor(Math.random() * (max - min + 1) + min);
+    if (num == 0) {
+        num = getRandomInteger(min, max);
+    }
+    return num;
+}
+// 随机颜色
+function getRandomColor() {
+    const color = new THREE.Color();
+    color.setRGB(Math.random(), Math.random(), Math.random());
+    return color;
+}
 render();
+
 
 let eventObj = {
     Fullscreen: function () {
@@ -81,61 +94,60 @@ let eventObj = {
     },
     AutoRotate: function () {
         controls.autoRotate = controls.autoRotate ? false : 0.05;
-    }
+    },
+    AddCube: function () {
+        const childCube = cube.init({
+            wireframe: false,
+            color: { color: getRandomColor() },
+            position: {
+                x: getRandomInteger(-10, 10),
+                y: getRandomInteger(-10, 10),
+                z: getRandomInteger(-10, 10)
+            },
+        });
+        parentCube.add(childCube);
+        cubes.push(childCube);
+        // 限制最大数量20
+        if (cubes.length > 20) {
+            parentCube.remove(cubes[0]);
+            cubes.shift();
+        }
+
+    },
 }
 // 创建GUI
 const gui = new GUI();
 // 父元素线框模式
-// gui.add(parentMaterial, 'wireframe').name("父元素线框模式");
+gui.add(parentCube.material, 'wireframe').name("父元素线框模式");
 // 父元素颜色调节
-let colorParams = { cubeColor: "0x00ff00" };
-gui.addColor(colorParams, 'cubeColor').name("父元素颜色").onChange((val) => {
-    childCube.material.color.set(val);
+let colorParams = { parentColor: "0xff0000" };
+gui.addColor(colorParams, 'parentColor').name("父元素颜色").onChange((val) => {
+    parentCube.material.color.set(val);
 });
 
 // 添加按钮
 gui.add(eventObj, 'Fullscreen').name("全屏");
 gui.add(eventObj, 'ExitFullscreen').name("退出全屏");
 gui.add(eventObj, 'AutoRotate').name("自动旋转");
+gui.add(eventObj, 'AddCube').name("添加cube");
 // 创建立方体
 let cubeFolder = gui.addFolder('立方体');
 
-// 控制立方体位置
-let folder = gui.addFolder('立方体位置');
-folder.add(childCube.position, 'x')
-    .min(-10)
-    .max(10)
-    .step(0.1)
-    .name("立方体x轴")
-    .onChange((val) => {
-        console.log("x:", val)
-    });
-folder.add(childCube.position, 'y')
-    .min(-10)
-    .max(10)
-    .step(0.1)
-    .name("立方体y轴")
-    .onFinishChange((val) => {
-        console.log("y:", val)
-    });
-folder.add(childCube.position, 'z')
-    .min(-10)
-    .max(10)
-    .step(0.1)
-    .name("立方体z轴");
+
+
 
 
 // 双击控制屏幕进入全屏，退出全屏
-// window.addEventListener("dblclick", () => {
-//     const fullScreenElement = document.fullscreenElement;
-//     if (!fullScreenElement) {
-//         // 让画布对象全屏
-//         renderer.domElement.requestFullscreen();
-//     } else {
-//         // 退出全屏，使用document对象
-//         document.exitFullscreen();
-//     }
-// });
+window.addEventListener("dblclick", () => {
+    const fullScreenElement = document.fullscreenElement;
+    if (!fullScreenElement) {
+        // 让画布对象全屏
+        renderer.domElement.requestFullscreen();
+    } else {
+        // 退出全屏，使用document对象
+        document.exitFullscreen();
+    }
+});
 
 // 监听画面变化，更新渲染画面
 window.addEventListener("resize", () => {

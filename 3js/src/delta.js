@@ -1,4 +1,4 @@
-// 导入threejs
+// 导入three.js
 import * as THREE from 'three';
 export class DeltaGeometry {
 
