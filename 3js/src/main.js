@@ -14,7 +14,10 @@ import { GUI } from "three/examples/jsm/libs/lil-gui.module.min.js";
 let cubes = [];
 const cube = new CubeGeometry();
 const delta = new DeltaGeometry();
+var cubeID = 1;
 
+// 创建GUI
+const gui = new GUI();
 // 创建场景
 const scene = new THREE.Scene();
 
@@ -59,12 +62,16 @@ controls.enableDamping = true;
 controls.dampingFactor = 0.05;
 
 function render() {
-    // console.log(cubes.length)
     controls.update();
     requestAnimationFrame(render);
-    // 旋转
-    // childCube.rotation.x += 0.01;
-    // childCube.rotation.y += 0.01;
+    cubes.forEach(function (element) {
+        // 遍历数组并对每个元素执行操作
+        if (element.flag) {
+            // 旋转
+            element.rotation.x += 0.01;
+            element.rotation.y += 0.01;
+        }
+    });
     renderer.render(scene, camera);
 }
 
@@ -104,19 +111,22 @@ let eventObj = {
                 y: getRandomInteger(-10, 10),
                 z: getRandomInteger(-10, 10)
             },
+            gui: gui,
+            cubeID: cubeID,
+            parentCube: parentCube
         });
         parentCube.add(childCube);
         cubes.push(childCube);
+        cubeID += 1;
         // 限制最大数量20
         if (cubes.length > 20) {
             parentCube.remove(cubes[0]);
             cubes.shift();
+            gui.folders[0].destroy();
         }
-
     },
 }
-// 创建GUI
-const gui = new GUI();
+
 // 父元素线框模式
 gui.add(parentCube.material, 'wireframe').name("父元素线框模式");
 // 父元素颜色调节
@@ -128,26 +138,22 @@ gui.addColor(colorParams, 'parentColor').name("父元素颜色").onChange((val) 
 // 添加按钮
 gui.add(eventObj, 'Fullscreen').name("全屏");
 gui.add(eventObj, 'ExitFullscreen').name("退出全屏");
-gui.add(eventObj, 'AutoRotate').name("自动旋转");
+gui.add(eventObj, 'AutoRotate').name("场景旋转");
 gui.add(eventObj, 'AddCube').name("添加cube");
-// 创建立方体
-let cubeFolder = gui.addFolder('立方体');
-
-
 
 
 
 // 双击控制屏幕进入全屏，退出全屏
-window.addEventListener("dblclick", () => {
-    const fullScreenElement = document.fullscreenElement;
-    if (!fullScreenElement) {
-        // 让画布对象全屏
-        renderer.domElement.requestFullscreen();
-    } else {
-        // 退出全屏，使用document对象
-        document.exitFullscreen();
-    }
-});
+// window.addEventListener("dblclick", () => {
+//     const fullScreenElement = document.fullscreenElement;
+//     if (!fullScreenElement) {
+//         // 让画布对象全屏
+//         renderer.domElement.requestFullscreen();
+//     } else {
+//         // 退出全屏，使用document对象
+//         document.exitFullscreen();
+//     }
+// });
 
 // 监听画面变化，更新渲染画面
 window.addEventListener("resize", () => {

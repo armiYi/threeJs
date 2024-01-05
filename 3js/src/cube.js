@@ -8,6 +8,48 @@ export class CubeGeometry {
         this.material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
     }
 
+    // 控制立方体位置
+    cubePosition(params, childCube) {
+        let folderName = '立方体_' + params.cubeID;
+        childCube.name = folderName;
+        childCube.flag = false;
+        let folder = params.gui.addFolder(folderName);
+        const folderState = {
+            delete: function () {
+                params.parentCube.remove(childCube);
+                folder.destroy();
+            },
+            rotation: function () {
+                childCube.flag = !childCube.flag;
+            }
+        };
+        folder.add(childCube.material, 'wireframe').name("线框模式");
+        folder.add(folderState, 'rotation').name("开启旋转");
+        folder.add(childCube.position, 'x')
+            .min(-10)
+            .max(10)
+            .step(0.1)
+            .name("立方体x轴")
+            .onChange((val) => {
+                // console.log("x:", val)
+            });
+        folder.add(childCube.position, 'y')
+            .min(-10)
+            .max(10)
+            .step(0.1)
+            .name("立方体y轴")
+            .onFinishChange((val) => {
+                // console.log("y:", val)
+            });
+        folder.add(childCube.position, 'z')
+            .min(-10)
+            .max(10)
+            .step(0.1)
+            .name("立方体z轴");
+        folder.add(folderState, 'delete').name('删除');
+
+    }
+
     init(params) {
         // 创建几何体
         const geometry = new THREE.BoxGeometry(1, 1, 1);
@@ -29,32 +71,10 @@ export class CubeGeometry {
         }
         // 设置立方体的放大
         cube.scale.set(2, 2, 2);
-
+        if (params.gui) { this.cubePosition(params, cube) }
         return cube;
     };
 
-    //     // 控制立方体位置
-    // let folder = gui.addFolder('立方体位置');
-    // folder.add(childCube.position, 'x')
-    //     .min(-10)
-    //     .max(10)
-    //     .step(0.1)
-    //     .name("立方体x轴")
-    //     .onChange((val) => {
-    //         console.log("x:", val)
-    //     });
-    // folder.add(childCube.position, 'y')
-    //     .min(-10)
-    //     .max(10)
-    //     .step(0.1)
-    //     .name("立方体y轴")
-    //     .onFinishChange((val) => {
-    //         console.log("y:", val)
-    //     });
-    // folder.add(childCube.position, 'z')
-    //     .min(-10)
-    //     .max(10)
-    //     .step(0.1)
-    //     .name("立方体z轴");
+
 
 }
