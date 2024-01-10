@@ -1,16 +1,25 @@
 // 导入three.js
 import * as THREE from 'three';
+import { Common } from './common.js';
 export class CubeGeometry {
     // 静态变量
     static argc = 'CubeGeometry';
     // 初始化
     constructor() {
-        this.material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+        this.material = [
+            new THREE.MeshBasicMaterial({ color: Common.getRandomColor() }),
+            new THREE.MeshBasicMaterial({ color: Common.getRandomColor() }),
+            new THREE.MeshBasicMaterial({ color: Common.getRandomColor() }),
+            new THREE.MeshBasicMaterial({ color: Common.getRandomColor() }),
+            new THREE.MeshBasicMaterial({ color: Common.getRandomColor() }),
+            new THREE.MeshBasicMaterial({ color: Common.getRandomColor() }),
+        ];
     }
 
-    // 控制立方体位置
+    // 控制立方体
     cubePosition(params, childCube) {
         let folderName = '立方体_' + params.cubeID;
+        childCube.castShadow = true;
         childCube.name = folderName;
         childCube.flag = false;
         let folder = params.gui.addFolder(folderName);
@@ -56,11 +65,12 @@ export class CubeGeometry {
         // 创建材质
         if (params.color) {
             this.material = new THREE.MeshBasicMaterial(params.color);
+            // 设置材质为线框模式
+            this.material.wireframe = params.wireframe;
         }
-        // 创建网格
+        // 创建立方体
         let cube = new THREE.Mesh(geometry, this.material);
-        // 设置父元素材质为线框模式
-        this.material.wireframe = params.wireframe;
+
 
         // 基于父元素的位置：局部坐标
         if (params.position) {

@@ -2,6 +2,7 @@
 import { CubeGeometry } from './cube.js';
 // 三角形测试类
 import { DeltaGeometry } from './delta.js';
+import { Common } from './common.js';
 
 // 导入three.js
 import * as THREE from 'three';
@@ -9,6 +10,12 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 // 导入lil.gui
 import { GUI } from "three/examples/jsm/libs/lil-gui.module.min.js";
+// 导入hdr加载器
+import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
+// 导入gltf加载器
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+// 导入draco
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 
 // 限制最大数量20
 let cubes = [];
@@ -20,6 +27,27 @@ var cubeID = 1;
 const gui = new GUI();
 // 创建场景
 const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x696969);
+
+// const gltfLoader = new GLTFLoader();
+// const dracoLoader = new DRACOLoader();
+// dracoLoader.setDecoderPath('/draco/');
+// gltfLoader.setDRACOLoader(dracoLoader);
+// gltfLoader.load(
+//     "../public/model/solarpunk_village.glb",
+//     (gltf) => {
+//         console.log(gltf)
+//         gltf.scene.position.set(0, -20, 0)
+//         scene.add(gltf.scene);
+//     }
+// )
+// // 创建环境贴图
+// let rgbeLoader = new RGBELoader();
+// rgbeLoader.load("/texture/1.hdr", (envMap) => {
+//     envMap.mapping = THREE.EquirectangularReflectionMapping;
+//     scene.background = envMap;
+// });
+
 
 // 创建相机
 const camera = new THREE.PerspectiveCamera(
@@ -29,25 +57,52 @@ const camera = new THREE.PerspectiveCamera(
     1000 // 远平面
 );
 
+const sphereGeometry = new THREE.SphereGeometry(1, 20, 20);
+const sphere = new THREE.Mesh(sphereGeometry, new THREE.MeshStandardMaterial());
+sphere.castShadow = true;
+sphere.position.set(0, 0, 3);
+scene.add(sphere);
+
+// 创建平面
+const planeGeometry = new THREE.PlaneGeometry(100, 100);
+const plane = new THREE.Mesh(planeGeometry, new THREE.MeshStandardMaterial());
+plane.position.set(0, -20, 0);
+plane.rotation.x = -Math.PI / 2;
+plane.receiveShadow = true;
+scene.add(plane);
+
+// 灯光
+const light = new THREE.AmbientLight(0xffffff, 0.5);
+scene.add(light);
+// 直线光源
+const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+directionalLight.position.set(0, 10, 0);
+directionalLight.castShadow = true;
+scene.add(directionalLight);
+
 // 创建渲染器
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
+// 开启阴影贴图
+renderer.shadowMap.enabled = true;
 document.body.appendChild(renderer.domElement);
 
 // 创建模型
 const parentCube = cube.init({ wireframe: true });
-const deltaFace = delta.init();
+parentCube.castShadow = true;
+// const deltaFace = delta.init();
 
 // 添加到场景
 scene.add(parentCube);
-scene.add(deltaFace);
+// scene.add(deltaFace);
+// deltaFace.position.set(3, 0, 0)
 parentCube.position.set(0, 0, 0)
 
 
 // 设置相机位置
-camera.position.z = 20;
-camera.position.y = 10;
-camera.position.x = 10;
+camera.position.z = 30;
+camera.position.y = 20;
+camera.position.x = 30;
 camera.lookAt(0, 0, 0);
 
 // 添加世界坐标辅助器
@@ -60,6 +115,11 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 // 阻尼系数
 controls.dampingFactor = 0.05;
+
+// 创建射线
+const raycaster = new THREE.Raycaster();
+// 创建鼠标向量
+const mouse = new THREE.Vector2();
 
 function render() {
     controls.update();
@@ -75,20 +135,6 @@ function render() {
     renderer.render(scene, camera);
 }
 
-// 随机数
-function getRandomInteger(min, max) {
-    let num = Math.floor(Math.random() * (max - min + 1) + min);
-    if (num == 0) {
-        num = getRandomInteger(min, max);
-    }
-    return num;
-}
-// 随机颜色
-function getRandomColor() {
-    const color = new THREE.Color();
-    color.setRGB(Math.random(), Math.random(), Math.random());
-    return color;
-}
 render();
 
 
@@ -105,11 +151,11 @@ let eventObj = {
     AddCube: function () {
         const childCube = cube.init({
             wireframe: false,
-            color: { color: getRandomColor() },
+            color: { color: Common.getRandomColor() },
             position: {
-                x: getRandomInteger(-10, 10),
-                y: getRandomInteger(-10, 10),
-                z: getRandomInteger(-10, 10)
+                x: Common.getRandomInteger(-10, 10),
+                y: Common.getRandomInteger(-10, 10),
+                z: Common.getRandomInteger(-10, 10)
             },
             gui: gui,
             cubeID: cubeID,
@@ -127,20 +173,11 @@ let eventObj = {
     },
 }
 
-// 父元素线框模式
-gui.add(parentCube.material, 'wireframe').name("父元素线框模式");
-// 父元素颜色调节
-let colorParams = { parentColor: "0xff0000" };
-gui.addColor(colorParams, 'parentColor').name("父元素颜色").onChange((val) => {
-    parentCube.material.color.set(val);
-});
-
 // 添加按钮
 gui.add(eventObj, 'Fullscreen').name("全屏");
 gui.add(eventObj, 'ExitFullscreen').name("退出全屏");
 gui.add(eventObj, 'AutoRotate').name("场景旋转");
 gui.add(eventObj, 'AddCube').name("添加cube");
-
 
 
 // 双击控制屏幕进入全屏，退出全屏
@@ -165,4 +202,26 @@ window.addEventListener("resize", () => {
     renderer.setSize(window.innerWidth, window.innerHeight);
     // 设置渲染器的像素比
     renderer.setPixelRatio(window.devicePixelRatio);
-}); 
+});
+
+
+window.addEventListener("click", (event) => {
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+    // 通过摄像机和鼠标位置更新射线
+    raycaster.setFromCamera(mouse, camera);
+
+    // 计算物体和射线的交点
+    const intersects = raycaster.intersectObjects(cubes);
+    if (intersects.length > 0) {
+        if (intersects[0].object._isSelected) {
+            intersects[0].object.material.color.set(intersects[0].object._originColor);
+            intersects[0].object._isSelected = false;
+            return;
+        }
+        intersects[0].object._isSelected = true;
+        intersects[0].object._originColor = intersects[0].object.material.color.getHex();
+        intersects[0].object.material.color.set(0xffffff);
+    }
+});
