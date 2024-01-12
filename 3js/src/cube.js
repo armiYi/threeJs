@@ -19,9 +19,10 @@ export class CubeGeometry {
     // 控制立方体
     cubePosition(params, childCube) {
         let folderName = '立方体_' + params.cubeID;
-        childCube.castShadow = true;
         childCube.name = folderName;
         childCube.flag = false;
+        childCube.castShadow = true;
+        childCube.receiveShadow = true;
         let folder = params.gui.addFolder(folderName);
         const folderState = {
             delete: function () {
@@ -71,7 +72,6 @@ export class CubeGeometry {
         // 创建立方体
         let cube = new THREE.Mesh(geometry, this.material);
 
-
         // 基于父元素的位置：局部坐标
         if (params.position) {
             cube.position.set(
@@ -80,7 +80,7 @@ export class CubeGeometry {
                 params.position.z);
         }
         // 设置立方体的放大
-        cube.scale.set(2, 2, 2);
+        // cube.scale.set(2, 2, 2);
         if (params.gui) { this.cubePosition(params, cube) }
         return cube;
     };

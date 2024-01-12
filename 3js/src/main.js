@@ -89,7 +89,7 @@ document.body.appendChild(renderer.domElement);
 
 // 创建模型
 const parentCube = cube.init({ wireframe: true });
-parentCube.castShadow = true;
+// parentCube.castShadow = true;
 // const deltaFace = delta.init();
 
 // 添加到场景
