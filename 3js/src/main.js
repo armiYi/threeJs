@@ -66,7 +66,7 @@ scene.add(sphere);
 // 创建平面
 const planeGeometry = new THREE.PlaneGeometry(100, 100);
 const plane = new THREE.Mesh(planeGeometry, new THREE.MeshStandardMaterial());
-plane.position.set(0, -20, 0);
+plane.position.set(0, -11, 0);
 plane.rotation.x = -Math.PI / 2;
 plane.receiveShadow = true;
 scene.add(plane);
@@ -76,8 +76,15 @@ const light = new THREE.AmbientLight(0xffffff, 0.5);
 scene.add(light);
 // 直线光源
 const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
-directionalLight.position.set(0, 10, 0);
+directionalLight.shadow.camera.left = -100;
+directionalLight.shadow.camera.right = 100;
+directionalLight.shadow.camera.top = 100;
+directionalLight.shadow.camera.bottom = -100;
+directionalLight.shadow.camera.near = 0.5;
+directionalLight.shadow.camera.far = 50;
+directionalLight.position.set(0, 11, 0);
 directionalLight.castShadow = true;
+directionalLight.shadow.mapSize.set(2048, 2048);
 scene.add(directionalLight);
 
 // 创建渲染器
@@ -97,7 +104,6 @@ scene.add(parentCube);
 // scene.add(deltaFace);
 // deltaFace.position.set(3, 0, 0)
 parentCube.position.set(0, 0, 0)
-
 
 // 设置相机位置
 camera.position.z = 30;
