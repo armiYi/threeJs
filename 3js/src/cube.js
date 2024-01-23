@@ -1,3 +1,10 @@
+// 添加摩擦系数  滑出plane自动移除
+// 可以选择并移动  模型边界线EdgesGeometry
+// plane可以单独设置倾斜角度
+// gui 设置单选、下拉菜单等
+// 加载gltf和glb并增加进度条
+
+
 // 导入three.js
 import * as THREE from 'three';
 import { Common } from './common.js';
@@ -84,7 +91,5 @@ export class CubeGeometry {
         if (params.gui) { this.cubePosition(params, cube) }
         return cube;
     };
-
-
 
 }
